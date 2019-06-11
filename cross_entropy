@@ -1,0 +1,77 @@
+# Todo: Check Code 
+
+# https://en.wikipedia.org/wiki/Cross_entropy
+# https://stackoverflow.com/questions/47377222/cross-entropy-function-python
+
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+
+
+# --- gaussian pdf --- #
+def get_pdf_norm(x_list):
+
+    _n = len(x_list)
+    _mu = np.mean(x_list)
+    _std = np.std(x_list)
+
+    def value_in_exp(x, mu, std):
+        result = -((x - mu) ** 2) / (2 * (std ** 2))
+        return result
+    _denominator = _std * np.sqrt(2 * math.pi)
+
+    pdf_list = []
+    for idx in range(_n):
+        x = x_list[idx]
+        tmp = (1/_denominator) * (math.exp(value_in_exp(x=x, mu=_mu, std=_std)))
+        pdf_list.append(tmp)
+
+    return pdf_list
+
+
+def cross_entropy(x1, x2):
+    """
+    :param x1: (list) x1
+    :param x2: (list) x2
+    :return: value of Cross Entropy
+    """
+    # todo: input, output 적음
+    _n = len(x1)
+
+    # p density
+    _p_density = get_pdf_norm(x1)
+
+    # q density
+    _q_density = get_pdf_norm(x2)
+    _log_q_density = list(map(lambda x: np.log(x), _q_density))
+
+    cross_entropy_list = []
+    for idx in range(_n):
+        # todo: CE 에서 nan 처리 어떻게 해주지...?
+        cross_entropy_list.append((-1) * _p_density[idx] * _log_q_density[idx])
+
+    _cross_entropy = np.sum(cross_entropy_list)
+    return _cross_entropy
+
+
+# --- generate sample data --- #
+n = 10000
+
+x_1 = np.random.normal(loc=0, scale=1, size=n)
+plt.hist(x_1, bins=20)
+
+x_2 = np.random.normal(loc=0, scale=1, size=n)       # same pdf
+plt.hist(x_2, bins=20)
+
+x_3 = np.random.normal(loc=-100, scale=1, size=n)    # mean shift
+plt.hist(x_3, bins=20)
+
+x_4 = np.random.normal(loc=0, scale=2, size=n)       # variance shift
+plt.hist(x_4, bins=20)
+
+
+cross_entropy(x1=x_1, x2=x_1)   # 3290
+cross_entropy(x1=x_1, x2=x_2)   # 3919
+cross_entropy(x1=x_1, x2=x_3)   # 3946
+cross_entropy(x1=x_1, x2=x_4)   # 5872
+
